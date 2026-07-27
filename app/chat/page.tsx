@@ -16,7 +16,7 @@ import {
   Sparkles,
   Loader2,
   MessageSquare,
-  FileText,
+  Menu,
 } from "lucide-react"
 import {
   getConversationsApi,
@@ -45,6 +45,7 @@ export default function ChatPage() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
@@ -72,7 +73,6 @@ export default function ChatPage() {
         if (found) {
           selectConversation(found)
         } else {
-          // If not in list, fetch its messages directly
           loadMessages(conversationIdFromUrl)
         }
       }
@@ -99,6 +99,7 @@ export default function ChatPage() {
   const selectConversation = (conv: Conversation) => {
     const id = conv.id || (conv as unknown as { _id: string })._id
     setActiveConversation(conv)
+    setIsMobileSidebarOpen(false)
     if (conv.title) {
       setAttachedContext({
         type: "file",
@@ -129,6 +130,7 @@ export default function ChatPage() {
 
     setConversations((prev) => [newConv, ...prev])
     setActiveConversation(newConv)
+    setIsMobileSidebarOpen(false)
 
     setAttachedContext({
       type: (doc.type as "file" | "link") || "file",
@@ -178,7 +180,6 @@ export default function ChatPage() {
           prev.map((m) => (m.id === tempUserMsg.id ? userMessage : m)).concat(aiMessage),
         )
       } else {
-        // If no conversation context exists yet, simulate assistant response
         setTimeout(() => {
           setMessages((prev) => [
             ...prev,
@@ -212,15 +213,28 @@ export default function ChatPage() {
     setActiveConversation(null)
     setAttachedContext(null)
     setMessages([])
+    setIsMobileSidebarOpen(false)
     if (typeof window !== "undefined") {
       window.history.pushState(null, "", "/chat")
     }
   }
 
   return (
-    <div className="flex h-svh w-full overflow-hidden bg-background">
+    <div className="relative flex h-svh w-full overflow-hidden bg-background">
+      {/* ── Mobile Sidebar Backdrop Overlay ── */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Left Sidebar (Conversations & Contexts) ── */}
-      <aside className="flex w-64 flex-col border-r border-border bg-sidebar/50">
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-sidebar transition-transform duration-300 md:static md:w-64 md:translate-x-0 ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         {/* Header */}
         <div className="flex h-14 items-center justify-between border-b border-border px-4">
           <div className="flex items-center gap-2">
@@ -309,12 +323,21 @@ export default function ChatPage() {
       </aside>
 
       {/* ── Main Chat Area ── */}
-      <main className="flex flex-1 flex-col">
+      <main className="flex min-w-0 flex-1 flex-col">
         {/* Chat Header */}
-        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-6">
-          <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
+          <div className="flex items-center gap-2 min-w-0">
+            <SiqButton
+              text=""
+              variant="ghost"
+              size="icon-sm"
+              className="md:hidden"
+              onPress={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              startIcon={<Menu className="size-5" />}
+              title="Toggle Sidebar"
+            />
+            <Sparkles className="size-4 shrink-0 text-primary" />
+            <span className="truncate text-sm font-medium text-foreground max-w-[180px] sm:max-w-xs">
               {activeConversation?.title || "SupportIQ Assistant"}
             </span>
           </div>
@@ -330,7 +353,7 @@ export default function ChatPage() {
         </header>
 
         {/* Messages Container */}
-        <div className="flex flex-1 flex-col overflow-y-auto p-6">
+        <div className="flex flex-1 flex-col overflow-y-auto p-4 sm:p-6">
           {isLoadingMessages ? (
             <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin text-primary" />
@@ -341,7 +364,7 @@ export default function ChatPage() {
               <div className="flex size-12 items-center justify-center rounded-2xl border border-border bg-sidebar shadow-xs">
                 <Bot className="size-6 text-foreground" />
               </div>
-              <div className="flex max-w-md flex-col items-center gap-1.5 text-center">
+              <div className="flex max-w-md flex-col items-center gap-1.5 text-center px-4">
                 <h3 className="text-base font-semibold text-foreground">
                   How can SupportIQ help you today?
                 </h3>
@@ -373,7 +396,7 @@ export default function ChatPage() {
                     </div>
 
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                      className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                         isUser
                           ? "border border-border bg-muted/70 text-foreground"
                           : "border border-border bg-sidebar text-foreground"
@@ -407,7 +430,7 @@ export default function ChatPage() {
         </div>
 
         {/* Input Bar & Context Selector */}
-        <div className="flex flex-col gap-3 border-t border-border bg-background p-4">
+        <div className="flex flex-col gap-3 border-t border-border bg-background p-3 sm:p-4">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
             {/* ── Expandable Upload / Link Box & Attached Pill ── */}
             <ContextSelector
