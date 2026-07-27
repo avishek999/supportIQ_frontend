@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback } from "react"
+import { useEffect, useState, useRef, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
 import { SiqButton } from "@/components/siq-button"
@@ -25,7 +25,7 @@ import {
 } from "@/lib/api/conversation.api"
 import type { Conversation, Message, DocumentItem } from "@/lib/types/chat.types"
 
-export default function ChatPage() {
+function ChatContent() {
   const { user, logout } = useAuth()
   const searchParams = useSearchParams()
   const conversationIdFromUrl = searchParams.get("c")
@@ -482,5 +482,22 @@ export default function ChatPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-svh w-full items-center justify-center bg-background">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin text-primary" />
+            <span>Loading Chat...</span>
+          </div>
+        </div>
+      }
+    >
+      <ChatContent />
+    </Suspense>
   )
 }
