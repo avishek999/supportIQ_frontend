@@ -126,4 +126,3 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📜 License
 
 This project is licensed under the MIT License.
-# supportIQ_frontend
