@@ -3,19 +3,20 @@ export const API_BASE_URL =
 
 export const API_ROUTES = {
   AUTH: {
-    REGISTER: `${API_BASE_URL}/auth/register`,
-    LOGIN: `${API_BASE_URL}/auth/login`,
-    LOGOUT: `${API_BASE_URL}/auth/logout`,
-    ME: `${API_BASE_URL}/auth/me`,
+    REGISTER: `/auth/register`,
+    LOGIN: `/auth/login`,
+    LOGOUT: `/auth/logout`,
+    ME: `/auth/me`,
   },
   CONVERSATIONS: {
-    BASE: `${API_BASE_URL}/conversations`,
+    BASE: `/conversations`,
     MESSAGES: (conversationId: string) =>
-      `${API_BASE_URL}/conversations/${conversationId}/messages`,
+      `/conversations/${conversationId}/messages`,
   },
   DOCUMENTS: {
-    BASE: `${API_BASE_URL}/documents`,
-    UPLOAD: `${API_BASE_URL}/documents/upload`,
-    LINK: `${API_BASE_URL}/documents/link`,
+    BASE: `/documents`,
+    UPLOAD: `/documents/upload`,
+    LINK: `/documents/link`,
   },
 } as const
+
